@@ -8,7 +8,9 @@ use App\Model\Breakpoint;
 use App\Model\LoanProposal;
 use App\Service\LoanFeeCalculator\Contracts\DataImporter;
 use App\Service\LoanFeeCalculator\Contracts\FeeCalculator;
+use App\Service\LoanFeeCalculator\Contracts\FeeCalculatorStrategy;
 use App\Service\LoanFeeCalculator\DataImporter\JsonImporter;
+use App\Service\LoanFeeCalculator\Strategy\LinearInterpolation;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class Calculator implements FeeCalculator
@@ -16,8 +18,10 @@ class Calculator implements FeeCalculator
     /** @var array<int, Breakpoint> $breakpoints */
     private array $breakpoints = [];
     public function __construct(
-        DataImporter $importer = new JsonImporter(),
-        mixed $dataSource = 'data.json')
+        DataImporter                           $importer = new JsonImporter(),
+        mixed                                  $dataSource = 'data.json',
+        private readonly FeeCalculatorStrategy $strategy = new LinearInterpolation(),
+    )
     {
         $this->loadBreakpoints($importer, $dataSource);
     }
@@ -52,30 +56,7 @@ class Calculator implements FeeCalculator
             throw new InvalidArgumentException('Value must be between 1000 and 20000');
         }
 
-        if ($exactBreakpoint = $this->getExactBreakpoint($this->breakpoints, $application->amount())) {
-            $fee = $exactBreakpoint->getFee();
-        } else {
-            /**
-             * @var Breakpoint $minBreakpoint
-             * @var Breakpoint $maxBreakpoint
-             */
-            [$minBreakpoint, $maxBreakpoint] = $this->getBreakpoints($this->breakpoints, $application->amount());
-
-            // linear interpolation formula
-            // y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1)
-            $x = $application->amount();
-            $x1 = $minBreakpoint->getAmount();
-            $x2 = $maxBreakpoint->getAmount();
-            $y1 = $minBreakpoint->getFee();
-            $y2 = $maxBreakpoint->getFee();
-
-            $fee = $y1 + (($x - $x1) / ($x2 - $x1)) * ($y2 - $y1);
-        }
-
-        //fee rounded up such that fee + loan amount is an exact multiple of 5
-        $totalAmount = ceil(($application->amount() + $fee) / 5) * 5;
-
-        return round(($totalAmount - $application->amount()), 2);
+        return $this->strategy->calculate($application->amount(), $this->breakpoints);
     }
 
     private function loadBreakpoints(DataImporter $importer, mixed $source): void
@@ -114,49 +95,5 @@ class Calculator implements FeeCalculator
 
             $this->breakpoints[] = new Breakpoint(floatval($amount), floatval($fee));
         }
-    }
-
-    /** @param array<int, Breakpoint> $breakpoints */
-    private function getExactBreakpoint(array $breakpoints, float $amount): ?Breakpoint
-    {
-        /** @var Breakpoint $breakpoint */
-        foreach ($breakpoints as $breakpoint) {
-            if ($breakpoint->getAmount() === $amount) {
-                return $breakpoint;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param array<int, Breakpoint> $breakpoints
-     * @return array<int, Breakpoint>
-     */
-    private function getBreakpoints(array $breakpoints, float $loanAmount): array
-    {
-        $minBreakpoint = $maxBreakpoint = $minBreakpointIndex = null;
-
-        /** @var Breakpoint $breakpoint */
-        foreach ($breakpoints as $index => $breakpoint) {
-
-            //find min breakpoint
-            if ($breakpoint->getAmount() < $loanAmount) {
-                $minBreakpoint = $breakpoint;
-                $minBreakpointIndex = $index;
-            }
-        }
-
-        if ($minBreakpointIndex === null || !isset($breakpoints[$minBreakpointIndex+1])) {
-            throw new InvalidArgumentException(sprintf('Cannot get max breakpoint for loan amount: %f', $loanAmount));
-        } else {
-            $maxBreakpoint = $breakpoints[$minBreakpointIndex+1];
-        }
-
-        if (!$minBreakpoint instanceof Breakpoint || !$maxBreakpoint instanceof Breakpoint) {
-            throw new InvalidArgumentException(sprintf('Cannot get breakpoints for loan amount: %f', $loanAmount));
-        }
-
-        return [$minBreakpoint, $maxBreakpoint];
     }
 }

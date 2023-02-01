@@ -6,7 +6,6 @@ namespace App\Command;
 
 use App\Model\LoanProposal;
 use App\Service\LoanFeeCalculator\Contracts\FeeCalculator;
-use App\Service\LoanFeeCalculator\DataImporter\JsonImporter;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
