@@ -1,3 +1,7 @@
+
+Either there is an error in readme or fee can be smaller for bigger loan amount, I assumed readme data are correct
+. I am talking about "5000 PLN: 100 PLN" breakpoint.
+
 ## Testing
 
 ```bash
@@ -7,8 +11,10 @@ vendor/bin/phpstan analyse src tests --level 9
 bin/phpunit
 ```
 
-Either there is an error in readme or fee can be smaller for bigger loan amount, I assumed readme data are correct
-. I am talking about "5000 PLN: 100 PLN" breakpoint.
+## Usage
+```bash
+bin/console app:calculate-fee 19250
+```
 
 ## The test
 
