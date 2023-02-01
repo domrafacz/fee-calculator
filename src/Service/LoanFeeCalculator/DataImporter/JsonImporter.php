@@ -16,7 +16,7 @@ class JsonImporter implements DataImporter
             throw new InvalidArgumentException(sprintf('Filename must be a string, %s provided', gettype($source)));
         }
 
-        $fileData = file_get_contents($source);
+        $fileData = @file_get_contents($source);
 
         if ($fileData === false) {
             throw new FileNotFoundException(sprintf('File not found: %s', $source));

@@ -68,11 +68,15 @@ class LinearInterpolation implements FeeCalculatorStrategy
             }
         }
 
-        if ($minBreakpointIndex === null || !isset($breakpoints[$minBreakpointIndex+1])) {
-            throw new InvalidArgumentException(sprintf('Cannot get max breakpoint for loan amount: %f', $loanAmount));
-        } else {
-            $maxBreakpoint = $breakpoints[$minBreakpointIndex+1];
+        if ($minBreakpointIndex === null) {
+            throw new InvalidArgumentException(sprintf('Cannot get min breakpoint for loan amount: %f', $loanAmount));
         }
+
+        if (!isset($breakpoints[$minBreakpointIndex+1])) {
+            throw new InvalidArgumentException(sprintf('Cannot get max breakpoint for loan amount: %f', $loanAmount));
+        }
+
+        $maxBreakpoint = $breakpoints[$minBreakpointIndex+1];
 
         if (!$minBreakpoint instanceof Breakpoint || !$maxBreakpoint instanceof Breakpoint) {
             throw new InvalidArgumentException(sprintf('Cannot get breakpoints for loan amount: %f', $loanAmount));
