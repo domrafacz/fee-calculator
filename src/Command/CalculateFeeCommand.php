@@ -21,8 +21,7 @@ class CalculateFeeCommand extends Command
 {
     public function __construct(
         private readonly FeeCalculator $calculator,
-    )
-    {
+    ) {
         parent::__construct();
     }
 

@@ -21,8 +21,7 @@ class Calculator implements FeeCalculator
         DataImporter                           $importer = new JsonImporter(),
         mixed                                  $dataSource = 'data.json',
         private readonly FeeCalculatorStrategy $strategy = new LinearInterpolation(),
-    )
-    {
+    ) {
         $this->loadBreakpoints($importer, $dataSource);
     }
 
@@ -65,7 +64,6 @@ class Calculator implements FeeCalculator
         $prevAmount = $prevFee = 0;
 
         foreach ($data as $breakpoint) {
-
             if (!is_array($breakpoint)
                 || count($breakpoint) > 2
                 || !isset($breakpoint[0], $breakpoint[1])

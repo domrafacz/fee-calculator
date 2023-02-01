@@ -10,7 +10,6 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class LinearInterpolation implements FeeCalculatorStrategy
 {
-
     public function calculate(float $loanAmount, array $breakpoints): float
     {
         if ($exactBreakpoint = $this->getExactBreakpoint($breakpoints, $loanAmount)) {
@@ -62,7 +61,6 @@ class LinearInterpolation implements FeeCalculatorStrategy
 
         /** @var Breakpoint $breakpoint */
         foreach ($breakpoints as $index => $breakpoint) {
-
             //find min breakpoint
             if ($breakpoint->getAmount() < $loanAmount) {
                 $minBreakpoint = $breakpoint;

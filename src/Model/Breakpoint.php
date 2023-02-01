@@ -9,8 +9,7 @@ class Breakpoint
     public function __construct(
         private readonly float $amount,
         private readonly float $fee,
-    )
-    {
+    ) {
     }
 
     public function getAmount(): float
